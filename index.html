@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>새싹나라 놀이터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #EAF4FE;
+    --navy: #1E3A5F;
+    --sun: #FFC93C;
+    --coral: #FF7B6B;
+    --mint: #6ED3BF;
+    --lav: #C9A0F0;
+    --white: #FFFFFF;
+    --shadow: 0 6px 0 rgba(30, 58, 95, 0.12);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Gowun Dodum', sans-serif;
+    background: var(--sky);
+    color: var(--navy);
+    overflow-x: hidden;
+    -webkit-user-select: none; user-select: none;
+  }
+
+  header {
+    padding: 28px 32px 8px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .logo-dot {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: var(--sun); position: relative; flex-shrink: 0;
+  }
+  .logo-dot::after {
+    content: ''; position: absolute; left: 50%; top: -8px;
+    width: 10px; height: 16px; border-radius: 8px;
+    background: var(--mint); transform: translateX(-50%) rotate(12deg);
+  }
+  h1 { font-family: 'Jua', sans-serif; font-size: 34px; font-weight: 400; letter-spacing: 1px; }
+  .header-sub { font-size: 15px; opacity: 0.6; margin-top: 3px; }
+  .class-tag {
+    margin-left: auto; font-family: 'Jua', sans-serif; font-size: 17px;
+    background: var(--white); border-radius: 999px; padding: 8px 18px;
+    box-shadow: var(--shadow); display: none;
+  }
+
+  main { padding: 20px 32px 90px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 26px;
+  }
+  .card {
+    background: var(--white);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    cursor: pointer;
+    border: none; text-align: left; padding: 0;
+    font-family: inherit; color: inherit;
+    transition: transform 0.15s ease;
+  }
+  .card:nth-child(odd)  { transform: rotate(-1deg); }
+  .card:nth-child(even) { transform: rotate(1deg); }
+  .card:active { transform: scale(0.96); }
+  .card:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
+  .thumb {
+    width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block;
+    background: var(--sky);
+  }
+  .thumb-ph {
+    width: 100%; aspect-ratio: 4 / 3;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Jua', sans-serif; font-size: 72px; color: var(--white);
+  }
+  .card-body { padding: 14px 16px 16px; }
+  .card-title {
+    font-family: 'Jua', sans-serif; font-size: 20px; font-weight: 400;
+    line-height: 1.3; word-break: keep-all;
+  }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  .badge {
+    font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+    color: var(--navy);
+  }
+  .badge.a2 { background: var(--lav); }
+  .badge.a3 { background: var(--mint); }
+  .badge.a4 { background: var(--sun); }
+  .badge.a5 { background: var(--coral); color: var(--white); }
+
+  .state {
+    text-align: center; padding: 90px 20px; font-family: 'Jua', sans-serif;
+    font-size: 24px; opacity: 0.55;
+  }
+  .hint {
+    background: rgba(255, 201, 60, 0.25); border-radius: 14px;
+    padding: 12px 18px; font-size: 14px; margin-bottom: 20px; display: none;
+  }
+
+  #teacherBtn {
+    position: fixed; right: 16px; bottom: 14px;
+    font-family: 'Gowun Dodum', sans-serif; font-size: 13px;
+    background: rgba(30, 58, 95, 0.08); color: var(--navy);
+    border: none; border-radius: 999px; padding: 8px 16px;
+    cursor: pointer; opacity: 0.65;
+  }
+
+  .modal {
+    position: fixed; inset: 0; background: rgba(30, 58, 95, 0.45);
+    display: none; align-items: center; justify-content: center; z-index: 50;
+    padding: 20px;
+  }
+  .modal.open { display: flex; }
+  .sheet {
+    background: var(--white); border-radius: 26px; padding: 30px;
+    width: 100%; max-width: 460px; box-shadow: var(--shadow);
+    max-height: 85vh; overflow-y: auto;
+  }
+  .sheet h2 { font-family: 'Jua', sans-serif; font-weight: 400; font-size: 24px; margin-bottom: 18px; }
+  .sheet label { display: block; font-size: 14px; margin: 16px 0 8px; opacity: 0.75; }
+  .pw-input {
+    width: 100%; font-size: 22px; padding: 12px 16px;
+    border: 2px solid var(--sky); border-radius: 14px;
+    font-family: inherit; color: var(--navy); letter-spacing: 4px;
+  }
+  .pw-input:focus { outline: none; border-color: var(--sun); }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip {
+    font-family: 'Jua', sans-serif; font-size: 17px; font-weight: 400;
+    padding: 10px 20px; border-radius: 999px; cursor: pointer;
+    border: 2px solid var(--sky); background: var(--white); color: var(--navy);
+  }
+  .chip.on { background: var(--navy); border-color: var(--navy); color: var(--white); }
+  .btn-row { display: flex; gap: 10px; margin-top: 26px; }
+  .btn {
+    flex: 1; font-family: 'Jua', sans-serif; font-size: 18px; font-weight: 400;
+    padding: 14px; border-radius: 16px; border: none; cursor: pointer;
+  }
+  .btn-primary { background: var(--sun); color: var(--navy); box-shadow: 0 4px 0 rgba(30,58,95,0.15); }
+  .btn-primary:active { transform: translateY(2px); box-shadow: none; }
+  .btn-ghost { background: var(--sky); color: var(--navy); }
+  .err { color: var(--coral); font-size: 14px; margin-top: 10px; display: none; }
+  .note { font-size: 13px; opacity: .6; margin-top: 12px; line-height: 1.5; }
+  .admin-link {
+    display: block; text-align: center; margin-top: 18px; font-size: 14px;
+    color: var(--navy); opacity: 0.6;
+  }
+
+  /* 놀이 플레이어 (iframe 방식 콘텐츠용) */
+  #player {
+    position: fixed; inset: 0; background: var(--navy); z-index: 100;
+    display: none;
+  }
+  #player.open { display: block; }
+  #playerFrame { width: 100%; height: 100%; border: none; background: var(--white); }
+  #closeBtn {
+    position: absolute; top: 12px; right: 12px; z-index: 110;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--coral); color: var(--white); border: 3px solid var(--white);
+    font-size: 26px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card, .card:nth-child(odd), .card:nth-child(even) { transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-dot" aria-hidden="true"></div>
+  <div>
+    <h1 id="siteTitle">새싹나라 놀이터</h1>
+    <div class="header-sub">하고 싶은 놀이를 눌러 보세요!</div>
+  </div>
+  <div class="class-tag" id="classTag"></div>
+</header>
+
+<main>
+  <div class="hint" id="hint"></div>
+  <div class="grid" id="grid"></div>
+  <div class="state" id="stateMsg">놀이를 불러오고 있어요…</div>
+</main>
+
+<button id="teacherBtn">교사 모드</button>
+
+<!-- 교사 비밀번호 -->
+<div class="modal" id="pwModal">
+  <div class="sheet">
+    <h2>교사 모드</h2>
+    <label for="pwInput">비밀번호를 입력해 주세요</label>
+    <input class="pw-input" id="pwInput" type="password" inputmode="numeric" autocomplete="off">
+    <div class="err" id="pwErr">비밀번호가 맞지 않아요.</div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="pwCancel">닫기</button>
+      <button class="btn btn-primary" id="pwOk">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 반 지정 -->
+<div class="modal" id="setModal">
+  <div class="sheet">
+    <h2>이 태블릿은 어느 반인가요?</h2>
+    <label>반을 선택하면 그 반에 체크된 놀이만 보여요</label>
+    <div class="chip-row" id="classChips"></div>
+    <p class="note" id="classNote"></p>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="setCancel">취소</button>
+      <button class="btn btn-primary" id="setSave">저장하고 닫기</button>
+    </div>
+    <a class="admin-link" id="adminLink" href="#" target="_blank" rel="noopener">놀이 등록·반별 선택은 교사 관리 페이지에서 →</a>
+  </div>
+</div>
+
+<!-- 놀이 플레이어 -->
+<div id="player">
+  <button id="closeBtn" aria-label="놀이 닫기">✕</button>
+  <iframe id="playerFrame" title="놀이 화면" allow="autoplay; camera; microphone; fullscreen"></iframe>
+</div>
+
+<script>
+/* ══════════════ 설정 (배포 시 여기만 수정) ══════════════ */
+const API_URL   = 'https://script.google.com/macros/s/AKfycbzasSuCH2Z3lZU2J_j2ryx26yDuIRAhxPivsQJ7xqNM6TowFuvJXn_nemSdIFIuYjzumg/exec';
+const ADMIN_URL = 'admin.html';
+const SITE_TITLE = '새싹나라 놀이터';
+/* ═══════════════════════════════════════════════════════ */
+
+const PALETTE = ['#6ED3BF', '#FFC93C', '#FF7B6B', '#8FB8F6', '#C9A0F0'];
+const CLASS_KEY = 'noriClass';
+
+let allLinks = [];
+let config = { classes: [] };
+let selections = {};
+let myClass = localStorage.getItem(CLASS_KEY) || '';
+
+document.getElementById('siteTitle').textContent = SITE_TITLE;
+document.title = SITE_TITLE;
+document.getElementById('adminLink').href = ADMIN_URL;
+
+/* ───── 데이터 불러오기 ───── */
+async function fetchData() {
+  const stateMsg = document.getElementById('stateMsg');
+  try {
+    const res = await fetch(API_URL + '?action=list');
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    allLinks = data.links || [];
+    config = data.config || { classes: [] };
+    selections = data.selections || {};
+    render();
+  } catch (e) {
+    stateMsg.textContent = '놀이를 불러오지 못했어요. 선생님을 불러주세요!';
+    console.error(e);
+  }
+}
+
+/* ───── 그리드 렌더 ───── */
+function render() {
+  const grid = document.getElementById('grid');
+  const stateMsg = document.getElementById('stateMsg');
+  const hint = document.getElementById('hint');
+  const classTag = document.getElementById('classTag');
+  grid.innerHTML = '';
+  hint.style.display = 'none';
+
+  // 유아 화면엔 '놀이'만 (업무 링크 제외)
+  const plays = allLinks.filter(l => l.category === '놀이');
+
+  let shown;
+  if (myClass && selections[myClass] !== undefined) {
+    shown = plays.filter(l => selections[myClass].includes(l.id));
+    classTag.textContent = myClass;
+    classTag.style.display = 'block';
+  } else {
+    // 반 미지정 또는 아직 선택 저장 전 → 전체 놀이 표시 + 안내
+    shown = plays;
+    classTag.style.display = myClass ? 'block' : 'none';
+    if (myClass) classTag.textContent = myClass;
+    hint.textContent = myClass
+      ? `아직 ${myClass}의 놀이 선택이 저장되지 않아 전체 놀이가 보여요. 교사 관리 페이지에서 체크해 주세요.`
+      : '교사 모드에서 반을 지정하면, 그 반에 체크된 놀이만 보여요.';
+    hint.style.display = 'block';
+  }
+
+  if (shown.length === 0) {
+    stateMsg.textContent = plays.length === 0
+      ? '아직 등록된 놀이가 없어요.'
+      : `${myClass}에 체크된 놀이가 없어요. 교사 관리 페이지에서 골라 주세요!`;
+    stateMsg.style.display = 'block';
+    return;
+  }
+  stateMsg.style.display = 'none';
+
+  shown.forEach((l, i) => {
+    const card = document.createElement('button');
+    card.className = 'card';
+    const thumb = l.thumb
+      ? `<img class="thumb" src="${escapeHtml(l.thumb)}" alt="" loading="lazy">`
+      : `<div class="thumb-ph" style="background:${PALETTE[i % PALETTE.length]}">${escapeHtml(l.title.charAt(0))}</div>`;
+    const badges = l.ages.map(a => {
+      const n = a.replace('만', '').replace('세', '');
+      return `<span class="badge a${n}">${escapeHtml(a)}세</span>`;
+    }).join('');
+    card.innerHTML = `${thumb}<div class="card-body"><div class="card-title">${escapeHtml(l.title)}</div><div class="badges">${badges}</div></div>`;
+    card.addEventListener('click', () => openPlay(l));
+    grid.appendChild(card);
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ───── 놀이 열기 / 닫기 ───── */
+function openPlay(link) {
+  if (link.openMode === 'iframe') {
+    const player = document.getElementById('player');
+    document.getElementById('playerFrame').src = link.url;
+    player.classList.add('open');
+    try { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); } catch (e) {}
+  } else {
+    // 기본: 같은 탭에서 페이지 이동 (Canva는 임베드가 차단됨)
+    // → Canva 디자인 안에 넣어둔 🏠 홈 버튼으로 놀이터에 돌아옵니다
+    location.href = link.url;
+  }
+}
+
+document.getElementById('closeBtn').addEventListener('click', () => {
+  document.getElementById('player').classList.remove('open');
+  document.getElementById('playerFrame').src = 'about:blank';
+  try { document.exitFullscreen && document.fullscreenElement && document.exitFullscreen(); } catch (e) {}
+});
+
+/* ───── 교사 모드: 반 지정 ───── */
+const pwModal = document.getElementById('pwModal');
+const setModal = document.getElementById('setModal');
+
+document.getElementById('teacherBtn').addEventListener('click', () => {
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwErr').style.display = 'none';
+  pwModal.classList.add('open');
+  document.getElementById('pwInput').focus();
+});
+document.getElementById('pwCancel').addEventListener('click', () => pwModal.classList.remove('open'));
+document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') tryAuth(); });
+document.getElementById('pwOk').addEventListener('click', tryAuth);
+
+async function tryAuth() {
+  const pw = document.getElementById('pwInput').value;
+  const btn = document.getElementById('pwOk');
+  btn.disabled = true; btn.textContent = '확인 중…';
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'auth', pw })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      pwModal.classList.remove('open');
+      openClassPicker();
+    } else {
+      document.getElementById('pwErr').style.display = 'block';
+    }
+  } catch (e) {
+    document.getElementById('pwErr').textContent = '연결에 문제가 있어요. 인터넷을 확인해 주세요.';
+    document.getElementById('pwErr').style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = '확인';
+}
+
+function openClassPicker() {
+  const box = document.getElementById('classChips');
+  const note = document.getElementById('classNote');
+  box.innerHTML = '';
+  if (config.classes.length === 0) {
+    note.textContent = '아직 등록된 반이 없어요. 교사 관리 페이지에서 반을 먼저 추가해 주세요.';
+  } else {
+    note.textContent = '';
+    config.classes.forEach(c => {
+      const chip = document.createElement('button');
+      chip.className = 'chip' + (c === myClass ? ' on' : '');
+      chip.textContent = c;
+      chip.addEventListener('click', () => {
+        box.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
+        chip.classList.add('on'); // 반은 하나만 선택
+      });
+      box.appendChild(chip);
+    });
+  }
+  setModal.classList.add('open');
+}
+
+document.getElementById('setCancel').addEventListener('click', () => setModal.classList.remove('open'));
+document.getElementById('setSave').addEventListener('click', () => {
+  const on = setModal.querySelector('.chip.on');
+  myClass = on ? on.textContent : '';
+  if (myClass) localStorage.setItem(CLASS_KEY, myClass);
+  else localStorage.removeItem(CLASS_KEY);
+  setModal.classList.remove('open');
+  fetchData(); // 최신 선택 반영
+});
+
+fetchData();
+</script>
+</body>
+</html>
