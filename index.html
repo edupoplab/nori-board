@@ -328,8 +328,9 @@ function openPlay(link) {
     player.classList.add('open');
     try { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); } catch (e) {}
   } else {
-    // 기본: 새 창 (Canva 사이트는 임베드가 차단되어 있음)
-    window.open(link.url, '_blank', 'noopener');
+    // 기본: 같은 탭에서 페이지 이동 (Canva는 임베드가 차단됨)
+    // → Canva 디자인 안에 넣어둔 🏠 홈 버튼으로 놀이터에 돌아옵니다
+    location.href = link.url;
   }
 }
 
