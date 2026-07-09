@@ -93,6 +93,9 @@
   .item.open .item-desc { display: block; }
   .d-arrow { font-size: 11px; opacity: .45; display: inline-block; transition: transform .15s; }
   .item.open .d-arrow { transform: rotate(180deg); }
+  .t-link { cursor: pointer; }
+  .t-link:hover { text-decoration: underline; }
+  .t-link .ext { font-size: 12px; opacity: .4; }
   .item:last-child { border-bottom: none; }
   .item input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--navy); flex-shrink: 0; cursor: pointer; }
   .item img, .item .ph {
@@ -620,18 +623,35 @@ function renderList() {
       l.types.join(', '),
       (l.source === '자체개발' ? '⭐' : '🔗') + ' ' + esc(l.teacher || '-')
     ].filter(Boolean).join('　|　');
-    const arrow = l.desc ? ' <span class="d-arrow">▼</span>' : '';
     const descHtml = l.desc ? `<div class="item-desc">${esc(l.desc)}</div>` : '';
+    const descBtn = l.desc ? `<button class="btn btn-ghost mini" data-desc>안내 <span class="d-arrow">▼</span></button>` : '';
     div.innerHTML = `${checkbox}${thumb}
-      <div class="item-info" ${l.desc ? 'style="cursor:pointer" title="사용안내 보기"' : ''}>
-        <div class="item-title"><span class="cat ${l.category === '놀이' ? 'play' : 'work'}">${l.category}</span>${esc(l.title)}${arrow}</div>
+      <div class="item-info">
+        <div class="item-title"><span class="cat ${l.category === '놀이' ? 'play' : 'work'}">${l.category}</span><span class="t-link" data-prev title="새 창에서 미리보기">${esc(l.title)} <span class="ext">↗</span></span></div>
         <div class="item-meta">${meta}</div>
       </div>
+      ${descBtn}
+      <button class="btn btn-ghost mini" data-copy>복사</button>
       <button class="btn btn-ghost mini" data-edit="${l.id}">수정</button>
       <button class="btn btn-danger mini" data-del="${l.id}">삭제</button>
       ${descHtml}`;
+    div.querySelector('[data-prev]').addEventListener('click', () => {
+      window.open(l.url, '_blank', 'noopener,width=1100,height=750');
+    });
+    div.querySelector('[data-copy]').addEventListener('click', async (e) => {
+      const b = e.currentTarget;
+      try {
+        await navigator.clipboard.writeText(l.url);
+        b.textContent = '복사됨!';
+      } catch (err) {
+        prompt('아래 링크를 복사하세요:', l.url);
+        b.textContent = '복사';
+        return;
+      }
+      setTimeout(() => { b.textContent = '복사'; }, 1500);
+    });
     if (l.desc) {
-      div.querySelector('.item-info').addEventListener('click', () => div.classList.toggle('open'));
+      div.querySelector('[data-desc]').addEventListener('click', () => div.classList.toggle('open'));
     }
     box.appendChild(div);
   });
