@@ -41,6 +41,14 @@
   .add-inline { display: flex; gap: 8px; margin-top: 8px; }
   .add-inline input { flex: 1; }
 
+  .seg { display: flex; gap: 8px; margin-bottom: 4px; }
+  .seg-btn {
+    flex: 1; font-family: 'Jua', sans-serif; font-size: 15px;
+    padding: 11px; border-radius: 12px; cursor: pointer;
+    border: 1.5px solid var(--line); background: var(--white); color: var(--navy);
+  }
+  .seg-btn.on { background: var(--navy); border-color: var(--navy); color: var(--white); }
+
   .btn {
     font-family: 'Jua', sans-serif; font-size: 15px; border: none; border-radius: 12px;
     padding: 11px 20px; cursor: pointer;
@@ -121,22 +129,11 @@
       <div class="panel">
         <h2 id="formTitle">새 링크 등록</h2>
 
-        <div class="row2">
-          <div>
-            <label for="fCategory">대분류</label>
-            <select id="fCategory">
-              <option value="놀이">놀이 (유아 화면에 노출)</option>
-              <option value="업무">업무 (교사만 보기)</option>
-            </select>
-          </div>
-          <div>
-            <label for="fSource">출처</label>
-            <select id="fSource">
-              <option value="자체개발">⭐ 자체개발</option>
-              <option value="퍼옴">🔗 퍼옴</option>
-            </select>
-          </div>
+        <div class="seg" id="catSeg">
+          <button type="button" class="seg-btn on" data-cat="놀이">🎠 놀이 등록</button>
+          <button type="button" class="seg-btn" data-cat="업무">📋 업무 등록</button>
         </div>
+        <p class="sticky-note" id="catNote">놀이는 유아 태블릿에 노출되고, 업무는 교사만 볼 수 있어요.</p>
 
         <label for="fTitle">이름</label>
         <input type="text" id="fTitle" placeholder="예: 한글 단어 미로 게임">
@@ -144,21 +141,23 @@
         <label for="fUrl">링크 (URL)</label>
         <input type="url" id="fUrl" placeholder="https://…">
 
-        <label>연령</label>
-        <div class="chip-row" id="fAges"></div>
+        <div id="playOnly">
+          <label>연령</label>
+          <div class="chip-row" id="fAges"></div>
 
-        <label>놀이 주제</label>
-        <div class="chip-row" id="fThemes"></div>
-        <div class="add-inline">
-          <input type="text" id="newTheme" placeholder="새 주제 추가">
-          <button type="button" class="btn btn-ghost mini" data-add="themes" data-input="newTheme">추가</button>
-        </div>
+          <label>놀이 주제</label>
+          <div class="chip-row" id="fThemes"></div>
+          <div class="add-inline">
+            <input type="text" id="newTheme" placeholder="새 주제 추가">
+            <button type="button" class="btn btn-ghost mini" data-add="themes" data-input="newTheme">추가</button>
+          </div>
 
-        <label>활동 유형</label>
-        <div class="chip-row" id="fTypes"></div>
-        <div class="add-inline">
-          <input type="text" id="newType" placeholder="새 유형 추가">
-          <button type="button" class="btn btn-ghost mini" data-add="types" data-input="newType">추가</button>
+          <label>활동 유형</label>
+          <div class="chip-row" id="fTypes"></div>
+          <div class="add-inline">
+            <input type="text" id="newType" placeholder="새 유형 추가">
+            <button type="button" class="btn btn-ghost mini" data-add="types" data-input="newType">추가</button>
+          </div>
         </div>
 
         <div class="row2">
@@ -171,12 +170,12 @@
             </div>
           </div>
           <div>
-            <label for="fMode">여는 방식</label>
-            <select id="fMode">
-              <option value="newtab">페이지 이동으로 열기 (기본)</option>
-              <option value="iframe">앱 안에서 열기</option>
+            <label for="fSource">출처</label>
+            <select id="fSource">
+              <option value="자체개발">⭐ 자체개발</option>
+              <option value="퍼옴">🔗 퍼옴</option>
             </select>
-            <p class="sticky-note">Canva 놀이는 "페이지 이동"으로 열고, Canva 디자인 안에 놀이터 주소로 연결되는 🏠 홈 버튼을 넣어 주세요. 직접 만든 HTML 게임은 "앱 안에서 열기"가 가능해요 (✕ 버튼 자동 제공).</p>
+            <p class="sticky-note">Canva 놀이는 디자인 안에 놀이터로 돌아오는 🏠 홈 버튼을 넣어 주세요.</p>
           </div>
         </div>
 
@@ -232,6 +231,7 @@ let selections = {};
 let editingId = null;
 let thumbData = null;
 let curClass = '';
+let curCat = '놀이'; // 등록 폼의 현재 탭 (놀이/업무)
 let checked = new Set(); // 현재 반의 체크 상태
 let dirty = false;
 let filters = { cat: '전체', theme: '전체', type: '전체', age: '전체', source: '전체' };
@@ -375,14 +375,29 @@ document.getElementById('fThumb').addEventListener('change', e => {
 });
 
 /* ───── 폼 초기화 / 수정 / 저장 ───── */
+/* ───── 등록 탭 (놀이/업무) ───── */
+function setCat(cat) {
+  curCat = cat;
+  document.querySelectorAll('#catSeg .seg-btn').forEach(b => b.classList.toggle('on', b.dataset.cat === cat));
+  document.getElementById('playOnly').style.display = cat === '놀이' ? 'block' : 'none';
+  document.getElementById('catNote').textContent = cat === '놀이'
+    ? '놀이는 유아 태블릿에 노출돼요. 반별 선택에서 체크하면 그 반에 보여요.'
+    : '업무 링크는 유아 화면에 나가지 않고, 이 관리 페이지에서 교사끼리만 봐요.';
+  if (!editingId) {
+    document.getElementById('formTitle').textContent = cat === '놀이' ? '새 놀이 등록' : '새 업무 링크 등록';
+  }
+}
+document.querySelectorAll('#catSeg .seg-btn').forEach(b =>
+  b.addEventListener('click', () => setCat(b.dataset.cat))
+);
+
 function resetForm() {
   editingId = null; thumbData = null;
-  document.getElementById('formTitle').textContent = '새 링크 등록';
+  setCat('놀이');
+  document.getElementById('formTitle').textContent = '새 놀이 등록';
   document.getElementById('saveBtn').textContent = '등록하기';
-  document.getElementById('fCategory').value = '놀이';
   document.getElementById('fSource').value = '자체개발';
   ['fTitle', 'fUrl'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('fMode').value = 'newtab';
   document.getElementById('fThumb').value = '';
   document.getElementById('thumbPreview').style.display = 'none';
   document.querySelectorAll('#fAges .chip').forEach(c => c.classList.remove('on'));
@@ -396,13 +411,12 @@ function startEdit(id) {
   const l = links.find(x => x.id === id);
   if (!l) return;
   editingId = id; thumbData = null;
-  document.getElementById('formTitle').textContent = '링크 수정';
+  setCat(l.category || '놀이');
+  document.getElementById('formTitle').textContent = l.category === '업무' ? '업무 링크 수정' : '놀이 수정';
   document.getElementById('saveBtn').textContent = '수정 저장';
-  document.getElementById('fCategory').value = l.category || '놀이';
   document.getElementById('fSource').value = l.source || '자체개발';
   document.getElementById('fTitle').value = l.title;
   document.getElementById('fUrl').value = l.url;
-  document.getElementById('fMode').value = l.openMode || 'newtab';
   document.querySelectorAll('#fAges .chip').forEach(c => c.classList.toggle('on', l.ages.includes(c.dataset.value)));
   buildFormChips(l.themes, l.types);
   buildTeacherSelect(l.teacher);
@@ -416,16 +430,19 @@ function startEdit(id) {
 async function save() {
   const msg = document.getElementById('formMsg');
   const btn = document.getElementById('saveBtn');
-  const category = document.getElementById('fCategory').value;
+  const category = curCat;
   const title = document.getElementById('fTitle').value.trim();
   const url = document.getElementById('fUrl').value.trim();
-  const ages = [...document.querySelectorAll('#fAges .chip.on')].map(c => c.dataset.value);
+  const ages = category === '놀이'
+    ? [...document.querySelectorAll('#fAges .chip.on')].map(c => c.dataset.value)
+    : [];
   if (!title || !url) { msg.className = 'msg bad'; msg.textContent = '이름과 링크는 꼭 입력해 주세요.'; return; }
   if (category === '놀이' && ages.length === 0) { msg.className = 'msg bad'; msg.textContent = '놀이는 연령을 하나 이상 선택해 주세요.'; return; }
 
   btn.disabled = true; btn.textContent = '저장 중…';
   try {
-    let thumbUrl = editingId ? (links.find(x => x.id === editingId)?.thumb || '') : '';
+    const prev = editingId ? links.find(x => x.id === editingId) : null;
+    let thumbUrl = prev ? (prev.thumb || '') : '';
     if (thumbData) {
       const up = await api({ action: 'upload', ...thumbData });
       if (!up.ok) throw new Error(up.error);
@@ -434,12 +451,12 @@ async function save() {
     const link = {
       id: editingId,
       category, title, url, ages,
-      themes: [...document.querySelectorAll('#fThemes .chip.on')].map(c => c.dataset.value),
-      types: [...document.querySelectorAll('#fTypes .chip.on')].map(c => c.dataset.value),
+      themes: category === '놀이' ? [...document.querySelectorAll('#fThemes .chip.on')].map(c => c.dataset.value) : [],
+      types: category === '놀이' ? [...document.querySelectorAll('#fTypes .chip.on')].map(c => c.dataset.value) : [],
       source: document.getElementById('fSource').value,
       thumb: thumbUrl,
       teacher: document.getElementById('fTeacher').value,
-      openMode: document.getElementById('fMode').value
+      openMode: prev ? (prev.openMode || 'newtab') : 'newtab' // 화면에서 선택 제거 — 필요 시 시트에서 변경
     };
     const data = await api({ action: editingId ? 'update' : 'add', link });
     if (!data.ok) throw new Error(data.error);
